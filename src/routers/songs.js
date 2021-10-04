@@ -1,6 +1,7 @@
 const express = require('express');
 const songsRouter = new express.Router();
-const {Song} = require('../../models/');
+const validator = require('validator');
+const {Song, Author} = require('../../models/');
 
 /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
 /* Получить выборку песен или исполнителей по части их названия.*/
@@ -9,20 +10,47 @@ const {Song} = require('../../models/');
     10 песен, идущих после первых 20-и от начала выборки.
 */
 
-songsRouter.get('/', async (req, res) => {
+// find by id
+songsRouter.get('/:uuid', async (req, res) => {
+    const uuid = req.params.uuid
     try {
-        res.send('Get songs query');
+        if (!validator.isUUID(uuid, [4])) {
+            return res.status(400).json({error: "Invalid request (UUID not valid)"});
+        }
+        const songById = await Song.findOne({where: {uuid}});
+        return res.json(songById);
     } catch (err) {
         console.log('Something went wrong', err);
+        return res.status(500).json({error: 'Something went wrong'});
+    }
+})
+
+// find all
+songsRouter.get('/', async (req, res) => {
+    try {
+        console.log("Find all");
+        const allSongs = await Song.findAll({});
+        return res.json(allSongs);
+    } catch (err) {
+        console.log('Something went wrong', err);
+        return res.status(500).json({error: 'Something went wrong'});
     }
 })
 
 
 songsRouter.post('/', async (req, res) => {
-    const {title, duration} = req.body;
+    const {title, duration, userUuid} = req.body;
     try {
-        const newSong = await Song.create({title, duration});
-        return res.status(201).json(newSong);
+        if (!validator.isUUID(userUuid, [4])) {
+            return res.status(400).json({error: "Invalid request (UUID not valid)"});
+        }
+        const authorObject = await Author.findOne({where: {uuid: userUuid}})
+        if (authorObject) {
+            const newSong = await Song.create({title, duration, authorId: authorObject.id});
+            return res.status(201).json(newSong);
+        } else {
+            return res.status(404).json({error: "User not found"});
+        }
     } catch (err) {
         console.log("Something went wrong", err);
         return res.status(500)

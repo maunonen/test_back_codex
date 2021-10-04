@@ -9,13 +9,13 @@ const authorsRouter = require('./routers/authors');
 const {sequelize} = require('../models/index');
 
 
-/*async function main() {
+async function main() {
     await sequelize.sync({
         force: true
     });
 }
 
-main();*/
+main();
 
 
 app.use(bodyParser.json())
