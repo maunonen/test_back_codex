@@ -1,5 +1,6 @@
 const express = require('express');
 const authorRouter = new express.Router();
+const {Author} = require('../../models/');
 
 authorRouter.get('/', async (req, res) => {
     try {
@@ -10,11 +11,14 @@ authorRouter.get('/', async (req, res) => {
 })
 
 
-authorRouter.post('/',  async (req, res ) => {
+authorRouter.post('/', async (req, res) => {
+    const {name, birthday, label} = req.body;
+
     try {
-        res.status(201).send('Post author query');
+        const newAuthor = await Author.create({name, birthday, label});
+        res.status(201).send(newAuthor);
     } catch (e) {
-        res.status(400).send( { error : e.message || e });
+        res.status(500).send({error: e.message || e});
     }
 })
 
