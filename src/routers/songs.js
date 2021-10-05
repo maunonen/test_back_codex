@@ -2,14 +2,7 @@ const express = require('express');
 const songsRouter = new express.Router();
 const {isValidUUID} = require('../utils/helper');
 const {Song, Author} = require('../../models/');
-
-
-/* Получить все песни определенного исполнителя или нескольких исполнителей.*/
-/* Получить выборку песен или исполнителей по части их названия.*/
-/* Получить выборку песен или исполнителей по дате внесения записи.*/
-/* Получить часть выборки песен или исполнителей. Например,
-    10 песен, идущих после первых 20-и от начала выборки.
-*/
+const { Op } = require("sequelize");
 
 // find by id
 songsRouter.get('/:uuid', async (req, res) => {
@@ -33,6 +26,17 @@ songsRouter.get('/:uuid', async (req, res) => {
 // Получить все песни определенного исполнителя или нескольких исполнителей
 
 songsRouter.get('/', async (req, res) => {
+    /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
+    /* Получить выборку песен или исполнителей по части их названия.*/
+    /* Получить выборку песен или исполнителей по дате внесения записи.*/
+    /* Получить часть выборки песен или исполнителей. Например,
+        10 песен, идущих после первых 20-и от начала выборки.
+    */
+    /**
+     * songTitle - search params songs title
+     * createdAtSong - Date params for searching author
+     * */
+    const {songTitle} = req.query;
     try {
         /*const allSongs = await Song.findAll({include: {model: Author, as: 'author'}});*/
         const allSongs = await Song.findAll({include: 'author'});

@@ -3,8 +3,11 @@ const authorRouter = new express.Router();
 const {Author} = require('../../models/');
 const {isAllowedAuthor, isValidUUID} = require('../utils/helper');
 const validator = require('validator');
+const moment = require('moment');
+const {Op} = require("sequelize");
 
 // get Author by ID
+/* Получить все песни определенного исполнителя или нескольких исполнителей.*/
 authorRouter.get('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     try {
@@ -25,8 +28,45 @@ authorRouter.get('/:uuid', async (req, res) => {
 })
 
 authorRouter.get('/', async (req, res) => {
+    /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
+    /* Получить выборку песен или исполнителей по части их названия.*/
+    /* Получить выборку песен или исполнителей по дате внесения записи.*/
+    /* Получить часть выборки песен или исполнителей. Например,
+        10 песен, идущих после первых 20-и от начала выборки.
+    */
+    /**
+     * authorsList - array of Author userID
+     * authorName - searching string by Author name
+     * createdAtAuthor - Date params for searching author
+     */
+    const {authorList, authorName, createdAtAuthor, limit, offset} = req.body;
+    /*console.log('To date', moment(createdAtAuthor).add(1, 'days').toDate())
+    console.log('Add to date', moment(createdAtAuthor).add(2, 'days').toDate())*/
+    const searchingParams = {
+        where: {
+            ...(authorList && authorList.length && {
+                uuid: {[Op.or]: [...authorList]}
+            })
+            ,
+            ...(authorName !== undefined && {
+                name: {[Op.like]: `%${authorName}%`}
+            })
+            ,
+            ...(createdAtAuthor !== undefined && {
+                createdAt: {
+                    [Op.gte]: moment(createdAtAuthor).toDate(),
+                    [Op.lt]: moment(createdAtAuthor).add(1, 'days').toDate(),
+                }
+            })
+        },
+        ...((offset !== undefined && offset !== null) && {offset}),
+        ...((limit !== undefined && limit !== null) && {limit}),
+    }
+
     try {
-        const authorList = await Author.findAll();
+        const authorList = await Author.findAll(
+            searchingParams
+        );
         if (!authorList) {
             return res.status(404).json({
                 message: "Nothing found"
