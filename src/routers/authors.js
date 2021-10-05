@@ -1,20 +1,23 @@
 const express = require('express');
 const authorRouter = new express.Router();
 const {Author} = require('../../models/');
-const cyrillicToTranslit = require('cyrillic-to-translit-js');
+const {isAllowedAuthor, isValidUUID} = require('../utils/helper');
 const validator = require('validator');
 
+// get Author by ID
 authorRouter.get('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     try {
-        if (!validator.isUUID(uuid, [4])) {
-            return res.status(400).json({error: "Invalid request (UUID not valid)"});
-        }
+        uuid && isValidUUID(uuid, res);
         const authorById = await Author.findOne({
             where: {uuid},
-            include : 'songs',
+            include: 'songs',
         });
-        return res.json(authorById);
+        if (authorById) {
+            return res.status(200).json(authorById);
+        } else {
+            return res.status(404).json({message: 'Nothing found'});
+        }
     } catch (err) {
         console.log('Something went wrong', err);
         return res.status(500).json({error: 'Something went wrong'});
@@ -23,24 +26,25 @@ authorRouter.get('/:uuid', async (req, res) => {
 
 authorRouter.get('/', async (req, res) => {
     try {
-        res.send('Get author query');
+        const authorList = await Author.findAll();
+        if (!authorList) {
+            return res.status(404).json({
+                message: "Nothing found"
+            })
+        } else {
+            return res.status(200).json(authorList);
+        }
+
     } catch (err) {
-        res.send(err);
+        console.log('Something went wrong', err);
+        return res.status(500).json({error: 'Something went wrong'});
     }
 })
 
-function isAllowedAuthor(authorName) {
-    let translitToLatin = cyrillicToTranslit().transform(authorName.toLowerCase());
-    if (translitToLatin === 'monetochka') {
-        return false
-    }
-    return true
-}
-
 authorRouter.post('/', async (req, res) => {
-    const {name, birthday, label} = req.body;
+    let {name, birthday, label} = req.body;
     try {
-        if (!isAllowedAuthor(name)) {
+        if (!isAllowedAuthor(name.trim())) {
             return res.status(400).json({error: "Author is not allowed"});
         }
         const newAuthor = await Author.create({name, birthday, label});
@@ -50,17 +54,48 @@ authorRouter.post('/', async (req, res) => {
     }
 })
 
-authorRouter.put('/', async (req, res) => {
+
+authorRouter.put('/:uuid', async (req, res) => {
+    const uuid = req.params.uuid;
+    const {name, birthday, label} = req.body;
+    console.log(uuid);
     try {
-        res.send('Update author query');
+        uuid && isValidUUID(uuid, res);
+        const updatedAuthor = await Author.findOne({
+            where: {uuid}
+        })
+        if (!updatedAuthor) {
+            return res.status(404).json({message: 'Author not found'});
+        }
+        if (name !== undefined) {
+            updatedAuthor.name = name;
+        }
+        if (birthday !== undefined) {
+            updatedAuthor.birthday = birthday;
+        }
+        if (label !== undefined) {
+            updatedAuthor.label = label;
+        }
+        await updatedAuthor.save();
+        return res.status(200).json(updatedAuthor);
     } catch (err) {
         res.send(err);
     }
 })
 
-authorRouter.delete('/', async (req, res) => {
+authorRouter.delete('/:uuid', async (req, res) => {
+    const uuid = req.params.uuid
     try {
-        res.status(200).send('Delete author operation');
+        uuid && isValidUUID(uuid, res);
+        const authorToRemoved = await Author.findOne({
+            where: {uuid}
+        })
+        if (authorToRemoved) {
+            await authorToRemoved.destroy();
+            return res.status(200).json({message: 'Author and his songs have been deleted'});
+        } else {
+            return res.status(404).json({message: 'Author not found'});
+        }
     } catch (err) {
         res.send(err);
     }

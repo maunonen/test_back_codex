@@ -25,7 +25,15 @@ app.use(cors({
 }));
 
 app.use(middleware.reqLogger);
-
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError &&
+        err.status >= 400 && err.status < 500 &&
+        err.message.indexOf('JSON')) {
+        res.status(400).send({error: "Invalid JSON Object"})
+    } else {
+        next();
+    }
+});
 app.use('/api/songs', songsRouter);
 app.use('/api/authors', authorsRouter);
 

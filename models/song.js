@@ -30,6 +30,9 @@ module.exports = (sequelize, DataTypes) => {
         title: {
             type: DataTypes.STRING,
             allowNull: false,
+            set(value) {
+                this.setDataValue('title', value.trim())
+            },
             validate: {
                 notNull: {msg: "Null value not allowed"},
                 notEmpty: {msg: "Empty value not allowed"}

@@ -1,6 +1,6 @@
 const express = require('express');
 const songsRouter = new express.Router();
-const validator = require('validator');
+const {isValidUUID} = require('../utils/helper');
 const {Song, Author} = require('../../models/');
 
 
@@ -15,11 +15,15 @@ const {Song, Author} = require('../../models/');
 songsRouter.get('/:uuid', async (req, res) => {
     const uuid = req.params.uuid
     try {
-        isValidUUID(uuid, res);
+        uuid && isValidUUID(uuid, res);
         const songById = await Song.findOne({
             where: {uuid}
         });
-        return res.json(songById);
+        if (songById) {
+            return res.status(200).json(songById);
+        } else {
+            return res.status(404).json({ message : 'Nothing found'});
+        }
     } catch (err) {
         console.log('Something went wrong', err);
         return res.status(500).json({error: 'Something went wrong'});
@@ -46,7 +50,7 @@ songsRouter.post('/', async (req, res) => {
         if (!authorUuid) {
             return res.status(400).json({error: "Please provide Author uuid"});
         }
-        isValidUUID(authorUuid, res);
+        authorUuid && isValidUUID(authorUuid, res);
         const authorObject = await Author.findOne({where: {uuid: authorUuid}})
         if (authorObject) {
             const newSong = await Song.create({title, duration, authorId: authorObject.id});
@@ -56,7 +60,7 @@ songsRouter.post('/', async (req, res) => {
         }
     } catch (err) {
         console.log("Something went wrong", err);
-        return res.status(500)
+        return res.status(500).json({error: 'Something went wrong'});
     }
 })
 
@@ -70,9 +74,9 @@ songsRouter.delete('/:uuid', async (req, res) => {
         } else {
             return res.status(404).json({message: 'Nothing to delete'});
         }
-        res.send('Update Songs query');
     } catch (err) {
-        res.send(err);
+        console.log("Something went wrong", err);
+        return res.status(500).json({error: 'Something went wrong'});;
     }
 })
 
@@ -82,9 +86,7 @@ songsRouter.put('/:uuid', async (req, res) => {
     let authorId;
     try {
         // validate UUid of Songs and author if provided
-        isValidUUID(uuid, res);
-        // validate in case of author authorUuid is provided
-
+        uuid && isValidUUID(uuid, res);
         // Check if Author exist
         if (authorUuid && isValidUUID(authorUuid, res)) {
             const authorObject = await Author.findOne({where: {uuid: authorUuid}})
@@ -134,24 +136,14 @@ songsRouter.put('/:uuid', async (req, res) => {
             updatedSong.duration = duration
         }
         if ( authorId !== undefined) {
-            updatedSong.authorId = authorId
+            updatedSong.authorUuid = authorId
         }
-
         await updatedSong.save();
-        return res.status(200).json({
-            message: "Song was successfully updated"
-        })
+        return res.status(200).json(updatedSong)
     } catch (err) {
         console.log('Something went wrong', err);
         return res.status(500).json({error: 'Something went wrong'});
     }
 })
-
-function isValidUUID(uuid, res) {
-    if (!validator.isUUID(uuid, [4])) {
-        return res.status(400).json({error: "Invalid request (UUID not valid)"});
-    }
-    return true
-}
 
 module.exports = songsRouter

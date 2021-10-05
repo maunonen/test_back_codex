@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate({Song}) {
             // define association here
-            this.hasMany(Song, {foreignKey: 'authorId', as: 'songs'});
+            this.hasMany(Song, {foreignKey: 'authorId', as: 'songs', onDelete : 'cascade'});
         }
 
         toJSON() {
@@ -26,6 +26,9 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.STRING,
             allowNull: false,
+            set(value) {
+                this.setDataValue('name', value.trim())
+            },
             validate: {
                 notNull: {msg: "Null value not allowed"},
                 notEmpty: {msg: "Empty value not allowed"}
