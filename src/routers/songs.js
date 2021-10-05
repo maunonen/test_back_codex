@@ -2,7 +2,7 @@ const express = require('express');
 const songsRouter = new express.Router();
 const {isValidUUID} = require('../utils/helper');
 const {Song, Author} = require('../../models/');
-const { Op } = require("sequelize");
+const {Op} = require("sequelize");
 
 // find by id
 songsRouter.get('/:uuid', async (req, res) => {
@@ -15,7 +15,7 @@ songsRouter.get('/:uuid', async (req, res) => {
         if (songById) {
             return res.status(200).json(songById);
         } else {
-            return res.status(404).json({ message : 'Nothing found'});
+            return res.status(404).json({message: 'Nothing found'});
         }
     } catch (err) {
         console.log('Something went wrong', err);
@@ -36,10 +36,44 @@ songsRouter.get('/', async (req, res) => {
      * songTitle - search params songs title
      * createdAtSong - Date params for searching author
      * */
-    const {songTitle} = req.query;
+    const {
+        songTitle, authorName, limit,
+        offset, createdAtSong, authorList
+    } = req.body;
+
     try {
-        /*const allSongs = await Song.findAll({include: {model: Author, as: 'author'}});*/
-        const allSongs = await Song.findAll({include: 'author'});
+        const queryParams = {
+            where: {
+                ...(songTitle !== undefined && {
+                    title: {[Op.like]: `%${songTitle}%`}
+                }),
+                ...(createdAtSong !== undefined && {
+                    createdAt: {
+                        [Op.gte]: moment(createdAtSong).toDate(),
+                        [Op.lt]: moment(createdAtSong).add(1, 'days').toDate(),
+                    }
+                })
+            },
+            ...((offset !== undefined && offset !== null) && {offset}),
+            ...((limit !== undefined && limit !== null) && {limit}),
+            include: {
+                model: Author,
+                as: 'author',
+                attributes: ['uuid', 'name', 'label'],
+                where: {
+                    ...(authorName !== undefined && {
+                            name: {[Op.like]: `%${authorName}%`}
+                        }
+                    ),
+                    ...((authorList && authorList.length > 0) && {
+                        uuid: {[Op.or]: [...authorList]}
+                    }),
+                }
+            },
+        }
+
+
+        const allSongs = await Song.findAll(queryParams);
         return res.json(allSongs);
     } catch (err) {
         console.log('Something went wrong', err);
@@ -80,7 +114,8 @@ songsRouter.delete('/:uuid', async (req, res) => {
         }
     } catch (err) {
         console.log("Something went wrong", err);
-        return res.status(500).json({error: 'Something went wrong'});;
+        return res.status(500).json({error: 'Something went wrong'});
+        ;
     }
 })
 
@@ -139,7 +174,7 @@ songsRouter.put('/:uuid', async (req, res) => {
         if (duration !== undefined) {
             updatedSong.duration = duration
         }
-        if ( authorId !== undefined) {
+        if (authorId !== undefined) {
             updatedSong.authorUuid = authorId
         }
         await updatedSong.save();
