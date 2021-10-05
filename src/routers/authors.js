@@ -1,6 +1,6 @@
 const express = require('express');
 const authorRouter = new express.Router();
-const {Author} = require('../../models/');
+const {Author, Song} = require('../../models/');
 const {isAllowedAuthor, isValidUUID} = require('../utils/helper');
 const validator = require('validator');
 const moment = require('moment');
@@ -39,40 +39,58 @@ authorRouter.get('/', async (req, res) => {
      * authorName - searching string by Author name
      * createdAtAuthor - Date params for searching author
      */
-    const {authorList, authorName, createdAtAuthor, limit, offset} = req.body;
+    const {
+        authorList, authorName, songTitle,
+        createdAtAuthor, limit, offset
+    } = req.body;
     /*console.log('To date', moment(createdAtAuthor).add(1, 'days').toDate())
     console.log('Add to date', moment(createdAtAuthor).add(2, 'days').toDate())*/
-    const searchingParams = {
-        where: {
-            ...(authorList && authorList.length && {
-                uuid: {[Op.or]: [...authorList]}
-            })
-            ,
-            ...(authorName !== undefined && {
-                name: {[Op.like]: `%${authorName}%`}
-            })
-            ,
-            ...(createdAtAuthor !== undefined && {
-                createdAt: {
-                    [Op.gte]: moment(createdAtAuthor).toDate(),
-                    [Op.lt]: moment(createdAtAuthor).add(1, 'days').toDate(),
-                }
-            })
-        },
-        ...((offset !== undefined && offset !== null) && {offset}),
-        ...((limit !== undefined && limit !== null) && {limit}),
-    }
 
     try {
-        const authorList = await Author.findAll(
-            searchingParams
+        /**
+         * creating query params object quering by author uuid, author name,
+         * created date. Setting up offset and limit
+         * */
+        const searchingParams = {
+            where: {
+                ...(authorList && authorList.length && {
+                    uuid: {[Op.or]: [...authorList]}
+                })
+                ,
+                ...(authorName !== undefined && {
+                    name: {[Op.like]: `%${authorName}%`}
+                })
+                ,
+                ...(createdAtAuthor !== undefined && {
+                    createdAt: {
+                        [Op.gte]: moment(createdAtAuthor).toDate(),
+                        [Op.lt]: moment(createdAtAuthor).add(1, 'days').toDate(),
+                    }
+                })
+            },
+            ...((offset !== undefined && offset !== null) && {offset}),
+            ...((limit !== undefined && limit !== null) && {limit}),
+            include: {
+                model: Song,
+                as: 'songs',
+                attributes: ['uuid', 'title', 'duration'],
+                ...(songTitle !== undefined && {
+                    where: {
+                        title: {[Op.like]: `%${songTitle}%`}
+                    }
+                }),
+            },
+        }
+
+        const authorResult = await Author.findAll(
+            searchingParams,
         );
-        if (!authorList) {
+        if (!authorResult) {
             return res.status(404).json({
                 message: "Nothing found"
             })
         } else {
-            return res.status(200).json(authorList);
+            return res.status(200).json(authorResult);
         }
 
     } catch (err) {
