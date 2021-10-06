@@ -42,14 +42,14 @@ authorRouter.get('/', async (req, res) => {
     const {
         authorList, authorName, songTitle,
         createdAtAuthor, limit, offset
-    } = req.body;
+    } = req.params;
     /*console.log('To date', moment(createdAtAuthor).add(1, 'days').toDate())
     console.log('Add to date', moment(createdAtAuthor).add(2, 'days').toDate())*/
 
     try {
         /**
-         * creating query params object quering by author uuid, author name,
-         * created date. Setting up offset and limit
+         * creating query params object querying by author uuid, author name,
+         * created date. Setting up offset and limit. Connect Author model.
          * */
         const searchingParams = {
             where: {

@@ -23,8 +23,6 @@ songsRouter.get('/:uuid', async (req, res) => {
     }
 })
 
-// Получить все песни определенного исполнителя или нескольких исполнителей
-
 songsRouter.get('/', async (req, res) => {
     /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
     /* Получить выборку песен или исполнителей по части их названия.*/
@@ -36,10 +34,14 @@ songsRouter.get('/', async (req, res) => {
      * songTitle - search params songs title
      * createdAtSong - Date params for searching author
      * */
+    /*const {
+        songTitle, authorName, limit,
+        offset, createdAtSong, authorList
+    } = req.body;*/
     const {
         songTitle, authorName, limit,
         offset, createdAtSong, authorList
-    } = req.body;
+    } = req.params;
 
     try {
         const queryParams = {
