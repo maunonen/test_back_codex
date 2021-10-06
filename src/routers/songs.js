@@ -41,7 +41,10 @@ songsRouter.get('/', async (req, res) => {
     const {
         songTitle, authorName, limit,
         offset, createdAtSong, authorList
-    } = req.params;
+    } = req.query;
+
+    /*console.log('Params', req.params);
+    console.log('Query', req.query);*/
 
     try {
         const queryParams = {
