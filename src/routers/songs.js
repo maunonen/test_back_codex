@@ -135,6 +135,7 @@ songsRouter.put('/:uuid', async (req, res) => {
         // Check if Author exist
         if (authorUuid && isValidUUID(authorUuid, res)) {
             const authorObject = await Author.findOne({where: {uuid: authorUuid}})
+            console.log('Author object', authorObject);
             if (!authorObject) {
                 return res.status(400).json({message: 'Can not update author. Author not found'});
             } else {
@@ -169,6 +170,7 @@ songsRouter.put('/:uuid', async (req, res) => {
             })
         }*/
         const updatedSong = await Song.findOne({where: {uuid}});
+        console.log('Before update', updatedSong)
 
         if (!updatedSong) {
             return res.status(404).json({message: 'Song not found'});
@@ -181,8 +183,10 @@ songsRouter.put('/:uuid', async (req, res) => {
             updatedSong.duration = duration
         }
         if (authorId !== undefined) {
-            updatedSong.authorUuid = authorId
+            console.log('Author ID', authorId);
+            updatedSong.authorId = authorId
         }
+        console.log('Before save', updatedSong)
         await updatedSong.save();
         return res.status(200).json(updatedSong)
     } catch (err) {
