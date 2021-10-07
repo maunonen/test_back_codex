@@ -43,8 +43,6 @@ authorRouter.get('/', async (req, res) => {
         authorList, authorName, songTitle,
         createdAtAuthor, limit, offset
     } = req.params;
-    /*console.log('To date', moment(createdAtAuthor).add(1, 'days').toDate())
-    console.log('Add to date', moment(createdAtAuthor).add(2, 'days').toDate())*/
 
     try {
         /**

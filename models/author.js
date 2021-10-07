@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             return {...this.get(), id: undefined};
         }
     };
+
     Author.init({
         uuid: {
             type: DataTypes.UUID,

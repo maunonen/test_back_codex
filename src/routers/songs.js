@@ -35,17 +35,11 @@ songsRouter.get('/', async (req, res) => {
      * songTitle - search params songs title
      * createdAtSong - Date params for searching author
      * */
-    /*const {
-        songTitle, authorName, limit,
-        offset, createdAtSong, authorList
-    } = req.body;*/
+
     const {
         songTitle, authorName, limit,
         offset, createdAtSong, authorList
     } = req.query;
-
-    /*console.log('Params', req.params);
-    console.log('Query', req.query);*/
 
     try {
         const queryParams = {
@@ -143,32 +137,6 @@ songsRouter.put('/:uuid', async (req, res) => {
             }
         }
 
-        // values to be updated
-        /*const updatedValues = {
-            ...(title !== undefined && {title}),
-            ...(duration !== undefined && {duration}),
-            ...(authorId !== undefined && {authorId}),
-        }
-
-        console.log('UPDATED', updatedValues);
-
-        const updatedObject = await Song.update(updatedValues, {
-            where: {uuid},
-            returning: true,
-            plain: true
-        });
-        console.log("UPDATED OBJECT", updatedObject);
-        return res.status(200).json({
-            message : "Song was successfully updated"
-        })*/
-
-        /*if (updatedObject.length > 0) {
-
-        } else {
-            return res.status(400).json({
-                message : "Nothing to update"
-            })
-        }*/
         const updatedSong = await Song.findOne({where: {uuid}});
         console.log('Before update', updatedSong)
 
@@ -183,10 +151,8 @@ songsRouter.put('/:uuid', async (req, res) => {
             updatedSong.duration = duration
         }
         if (authorId !== undefined) {
-            console.log('Author ID', authorId);
             updatedSong.authorId = authorId
         }
-        console.log('Before save', updatedSong)
         await updatedSong.save();
         return res.status(200).json(updatedSong)
     } catch (err) {
