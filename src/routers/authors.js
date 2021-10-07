@@ -42,7 +42,7 @@ authorRouter.get('/', async (req, res) => {
     const {
         authorList, authorName, songTitle,
         createdAtAuthor, limit, offset
-    } = req.params;
+    } = req.query;
 
     try {
         /**
@@ -97,11 +97,13 @@ authorRouter.get('/', async (req, res) => {
     }
 })
 
+
+
 authorRouter.post('/', async (req, res) => {
     let {name, birthday, label} = req.body;
     try {
         if (!isAllowedAuthor(name.trim())) {
-            return res.status(400).json({error: "Author is not allowed"});
+            return res.status(400).send({error: "Author is not allowed"});
         }
         const newAuthor = await Author.create({name, birthday, label});
         res.status(201).send(newAuthor);
@@ -114,7 +116,6 @@ authorRouter.post('/', async (req, res) => {
 authorRouter.put('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     const {name, birthday, label} = req.body;
-    console.log(uuid);
     try {
         uuid && isValidUUID(uuid, res);
         const updatedAuthor = await Author.findOne({
