@@ -20,6 +20,7 @@ main();
 
 app.use(bodyParser.json())
 
+// set yours ip address of front
 app.use(cors({
     origin: 'http://localhost:3000',
 }));
