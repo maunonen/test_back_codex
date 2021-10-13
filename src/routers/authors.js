@@ -11,7 +11,7 @@ const {Op} = require("sequelize");
 authorRouter.get('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     try {
-        uuid && isValidUUID(uuid, res);
+        isValidUUID(uuid, res);
         const authorById = await Author.findOne({
             where: {uuid},
             include: 'songs',
@@ -19,7 +19,7 @@ authorRouter.get('/:uuid', async (req, res) => {
         if (authorById) {
             return res.status(200).json(authorById);
         } else {
-            return res.status(404).json({message: 'Nothing found'});
+            return res.status(404).json({error: 'Nothing found'});
         }
     } catch (err) {
         console.log('Something went wrong', err);
@@ -117,12 +117,12 @@ authorRouter.put('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     const {name, birthday, label} = req.body;
     try {
-        uuid && isValidUUID(uuid, res);
+        isValidUUID(uuid, res);
         const updatedAuthor = await Author.findOne({
             where: {uuid}
         })
         if (!updatedAuthor) {
-            return res.status(404).json({message: 'Author not found'});
+            return res.status(404).json({error: 'Author not found'});
         }
         if (name !== undefined) {
             updatedAuthor.name = name;
@@ -143,7 +143,7 @@ authorRouter.put('/:uuid', async (req, res) => {
 authorRouter.delete('/:uuid', async (req, res) => {
     const uuid = req.params.uuid
     try {
-        uuid && isValidUUID(uuid, res);
+        isValidUUID(uuid, res);
         const authorToRemoved = await Author.findOne({
             where: {uuid}
         })
@@ -151,7 +151,7 @@ authorRouter.delete('/:uuid', async (req, res) => {
             await authorToRemoved.destroy();
             return res.status(200).json({message: 'Author and his songs have been deleted'});
         } else {
-            return res.status(404).json({message: 'Author not found'});
+            return res.status(404).json({error: 'Author not found'});
         }
     } catch (err) {
         res.send(err);

@@ -3,7 +3,7 @@ const cyrillicToTranslit = require('cyrillic-to-translit-js');
 
 function isValidUUID(uuid, res) {
     if (uuid === undefined || uuid === null || typeof (uuid) !== "string") {
-        return false
+        return res.status(400).json({error: "Please provide valid Uuid (not null, not undefined, string)"});
     }
     if (!validator.isUUID(uuid, [4])) {
         return res.status(400).json({error: "Invalid request (UUID not valid)"});
