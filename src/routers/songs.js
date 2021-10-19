@@ -4,9 +4,10 @@ const {isValidUUID} = require('../utils/helper');
 const {Song, Author} = require('../../models/');
 const {Op} = require("sequelize");
 const moment = require('moment');
+const {ValidationError, SequelizeValidationError} = require("sequelize");
 
 // find by id
-songsRouter.get('/:uuid', async (req, res) => {
+songsRouter.get('/:uuid', async (req, res, next) => {
     const uuid = req.params.uuid
     try {
         isValidUUID(uuid, res);
@@ -18,13 +19,12 @@ songsRouter.get('/:uuid', async (req, res) => {
         } else {
             return res.status(404).json({error: 'Nothing found'});
         }
-    } catch (err) {
-        console.log('Something went wrong', err);
-        return res.status(500).json({error: 'Something went wrong'});
+    } catch (e) {
+        next(e);
     }
 })
 
-songsRouter.get('/', async (req, res) => {
+songsRouter.get('/', async (req, res, next) => {
     /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
     /* Получить выборку песен или исполнителей по части их названия.*/
     /* Получить выборку песен или исполнителей по дате внесения записи.*/
@@ -75,14 +75,13 @@ songsRouter.get('/', async (req, res) => {
 
         const allSongs = await Song.findAll(queryParams);
         return res.json(allSongs);
-    } catch (err) {
-        console.log('Something went wrong', err);
-        return res.status(500).json({error: 'Something went wrong'});
+    } catch (e) {
+        next(e);
     }
 })
 
 
-songsRouter.post('/', async (req, res) => {
+songsRouter.post('/', async (req, res, next) => {
     const {title, duration, authorUuid} = req.body;
     try {
         isValidUUID(authorUuid, res);
@@ -93,13 +92,12 @@ songsRouter.post('/', async (req, res) => {
         } else {
             return res.status(404).json({error: "Author not found"});
         }
-    } catch (err) {
-        console.log("Something went wrong", err);
-        return res.status(500).json({error: 'Something went wrong'});
+    } catch (e) {
+        next(e);
     }
 })
 
-songsRouter.delete('/:uuid', async (req, res) => {
+songsRouter.delete('/:uuid', async (req, res, next) => {
     const uuid = req.params.uuid
     try {
         const songToRemoved = await Song.findOne({where: {uuid}});
@@ -109,14 +107,12 @@ songsRouter.delete('/:uuid', async (req, res) => {
         } else {
             return res.status(404).json({error: 'Nothing to delete'});
         }
-    } catch (err) {
-        console.log("Something went wrong", err);
-        return res.status(500).json({error: 'Something went wrong'});
-        ;
+    } catch (e) {
+        next(e);
     }
 })
 
-songsRouter.put('/:uuid', async (req, res) => {
+songsRouter.put('/:uuid', async (req, res, next) => {
     const uuid = req.params.uuid
     const {title, duration, authorUuid} = req.body
     /*let authorId;*/
@@ -147,9 +143,8 @@ songsRouter.put('/:uuid', async (req, res) => {
         }
         await updatedSong.save();
         return res.status(200).json(updatedSong)
-    } catch (err) {
-        console.log('Something went wrong', err);
-        return res.status(500).json({error: 'Something went wrong'});
+    } catch (e) {
+        next(new Error(e));
     }
 })
 

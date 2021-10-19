@@ -8,7 +8,7 @@ const {Op} = require("sequelize");
 
 // get Author by ID
 /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
-authorRouter.get('/:uuid', async (req, res) => {
+authorRouter.get('/:uuid', async (req, res, next) => {
     const uuid = req.params.uuid;
     try {
         isValidUUID(uuid, res);
@@ -21,13 +21,12 @@ authorRouter.get('/:uuid', async (req, res) => {
         } else {
             return res.status(404).json({error: 'Nothing found'});
         }
-    } catch (err) {
-        console.log('Something went wrong', err);
-        return res.status(500).json({error: 'Something went wrong'});
+    } catch (e) {
+        next(e);
     }
 })
 
-authorRouter.get('/', async (req, res) => {
+authorRouter.get('/', async (req, res, next) => {
     /* Получить все песни определенного исполнителя или нескольких исполнителей.*/
     /* Получить выборку песен или исполнителей по части их названия.*/
     /* Получить выборку песен или исполнителей по дате внесения записи.*/
@@ -91,29 +90,27 @@ authorRouter.get('/', async (req, res) => {
             return res.status(200).json(authorResult);
         }
 
-    } catch (err) {
-        console.log('Something went wrong', err);
-        return res.status(500).json({error: 'Something went wrong'});
+    } catch (e) {
+        next(e);
     }
 })
 
 
-
-authorRouter.post('/', async (req, res) => {
+authorRouter.post('/', async (req, res, next) => {
     let {name, birthday, label} = req.body;
     try {
-        if (!isAllowedAuthor(name.trim())) {
+        if (name && !isAllowedAuthor(name.trim())) {
             return res.status(400).send({error: "Author is not allowed"});
         }
         const newAuthor = await Author.create({name, birthday, label});
         res.status(201).send(newAuthor);
     } catch (e) {
-        res.status(500).send({error: e.message || e});
+        next(e);
     }
 })
 
 
-authorRouter.put('/:uuid', async (req, res) => {
+authorRouter.put('/:uuid', async (req, res, next) => {
     const uuid = req.params.uuid;
     const {name, birthday, label} = req.body;
     try {
@@ -135,12 +132,12 @@ authorRouter.put('/:uuid', async (req, res) => {
         }
         await updatedAuthor.save();
         return res.status(200).json(updatedAuthor);
-    } catch (err) {
-        res.send(err);
+    } catch (e) {
+        next(e);
     }
 })
 
-authorRouter.delete('/:uuid', async (req, res) => {
+authorRouter.delete('/:uuid', async (req, res, next) => {
     const uuid = req.params.uuid
     try {
         isValidUUID(uuid, res);
@@ -153,8 +150,8 @@ authorRouter.delete('/:uuid', async (req, res) => {
         } else {
             return res.status(404).json({error: 'Author not found'});
         }
-    } catch (err) {
-        res.send(err);
+    } catch (e) {
+        next(e);
     }
 })
 

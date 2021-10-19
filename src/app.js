@@ -37,5 +37,6 @@ app.use((err, req, res, next) => {
 });
 app.use('/api/songs', songsRouter);
 app.use('/api/authors', authorsRouter);
+app.use(middleware.errorHandler)
 
 module.exports = app

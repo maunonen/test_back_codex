@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate({Song}) {
             // define association here
-            this.hasMany(Song, {foreignKey: 'authorId', as: 'songs', onDelete : 'cascade'});
+            this.hasMany(Song, {foreignKey: 'authorId', as: 'songs', onDelete: 'cascade'});
         }
 
         toJSON() {
@@ -37,16 +37,16 @@ module.exports = (sequelize, DataTypes) => {
         },
         birthday: {
             type: DataTypes.DATEONLY,
-            allowNull : true,
+            allowNull: true,
             validate: {
-                isDate : {
-                    msg : "Value should be in Date format"
+                isDate: {
+                    msg: "Value should be in Date format"
                 }
             }
         },
-        label:  {
-            type : DataTypes.STRING,
-            allowNull : true,
+        label: {
+            type: DataTypes.STRING,
+            allowNull: true,
         }
     }, {
         sequelize,
