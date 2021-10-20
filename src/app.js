@@ -24,6 +24,9 @@ app.use(bodyParser.json())
 app.use(cors({
     origin: 'http://localhost:3000',
 }));
+// use static folders
+app.use(express.static('public'));
+app.use(express.static('build'));
 
 app.use(middleware.reqLogger);
 app.use((err, req, res, next) => {
